@@ -9,7 +9,7 @@
 
 - **🌐 Live Application**: [https://hirewize.vercel.app/](https://hirewize.vercel.app/)
 - **📋 GitHub Repository**: [https://github.com/Arjunhg/kiro](https://github.com/Arjunhg/kiro)
-- **🎥 Demo Video**: [3-minute demonstration video](https://youtube.com/) 
+- **🎥 Demo Video**: [3-minute demonstration video](https://youtu.be/nWJVKGOHJLY) 
 - **⚙️ n8n Workflow JSON**: [GitHub Gist](https://gist.github.com/Arjunhg/2a62ca089cf4f1b3049c7284d77525ec)
 
 ## 🎯 What HireWize Does
