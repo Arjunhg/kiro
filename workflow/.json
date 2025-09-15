@@ -1,0 +1,406 @@
+{
+  "name": "BrightData Flow For Interview Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-interview-question",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        96
+      ],
+      "id": "5f7dae66-36b1-4327-a978-fed32e601724",
+      "name": "Webhook",
+      "webhookId": "1292d30b-70c4-4414-a465-3889de3ef7f9"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.resumeUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        80
+      ],
+      "id": "81c00119-1130-4e10-9771-0e80cd1dc0d1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -176
+      ],
+      "id": "632595b6-a0d2-48c6-b251-0df8e08043e2",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Generate 10 Interview question with their answer depending on user resume data provided by user. Make sure response will be in question and answer field.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.cleanedContent }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1120,
+        48
+      ],
+      "id": "a9e2a696-9f4a-44dc-a32c-4f3297d8c9d4",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "1rtEU7Kmxl5emVZ3",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1440,
+        48
+      ],
+      "id": "e96558f2-b4f4-4072-92c6-9a573b74e43c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2854bb55-f7ee-4308-acb7-dfc53b6794a7",
+              "leftValue": "={{ $json.body.resumeUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        96
+      ],
+      "id": "2e9f8040-d550-46f0-88aa-cf6b2e02c99f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Depends on User Job Title and Job Description, generate 2 interview questions. Give me question and answer inside questions object list with field question and answer.",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.body.jobTitle }} {{ $json.body.jobDescription }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -368,
+        400
+      ],
+      "id": "1bafe0d3-4138-4257-89f4-efb7f985ccc1",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "1rtEU7Kmxl5emVZ3",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        64,
+        400
+      ],
+      "id": "23ac5b61-0a6d-4fd3-b6e0-d52675a105d4",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-1.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-1.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Extract the following fields from {{ $json.text }}:\n\n- jobTitle: The primary or most recent job title.\n- yoe: Total years of professional experience (YOE).\n- keywords: List of up to 5 relevant skills or technologies found in the resume.\n\nReturn your answer strictly in the following JSON format only with no other fields:\n{\n  \"jobTitle\": \"...\",\n  \"yoe\": ...,\n  \"keywords\": [ ... ]\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -176
+      ],
+      "id": "30dcbb55-1b58-4b8a-93b3-22f8f710701c",
+      "name": "Message a model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "XMb937sP70XTzzAt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "zone": {
+          "__rl": true,
+          "mode": "list",
+          "value": "web_unlocker1"
+        },
+        "country": {
+          "__rl": true,
+          "mode": "list",
+          "value": "us"
+        },
+        "url": "=https://www.linkedin.com/jobs/search/?keywords={{ encodeURIComponent($json.jobTitle) }}",
+        "requestOptions": {}
+      },
+      "type": "@brightdata/n8n-nodes-brightdata.brightData",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -176
+      ],
+      "id": "f207f94b-8038-46e4-a3fb-2de41b022b83",
+      "name": "Access and extract data from a specific URL",
+      "credentials": {
+        "brightdataApi": {
+          "id": "qz6G3HKtrLjp0LzF",
+          "name": "BrightData account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "instructions": "const text = items[0].json.content.parts[0].text;\nconst arr = JSON.parse(text);\n// Return only the first object\nreturn [{ json: arr[0] }];",
+        "codeGeneratedForPrompt": "const text = items[0].json.content.parts[0].text;\nconst arr = JSON.parse(text);\n// Return only the first object\nreturn [{ json: arr[0] }];",
+        "jsCode": "const items = $input.all();\nconst arr = JSON.parse(items[0].json.content.parts[0].text);\nreturn [{ json: arr[0] }];\n"
+      },
+      "type": "n8n-nodes-base.aiTransform",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -176
+      ],
+      "id": "647ff9fe-1ffc-4332-85c0-f1f3a0e5a45a",
+      "name": "AI Transform"
+    },
+    {
+      "parameters": {
+        "jsCode": "const outputItems = [];\n\nfor (const item of $input.all()) {\n  // Handle case where input is an array of strings\n  let htmlContent;\n  \n  if (typeof item.json === 'string') {\n    htmlContent = item.json;\n  } else if (Array.isArray(item.json)) {\n    htmlContent = item.json[0]; // Take first string from array\n  } else if (item.json && typeof item.json === 'object') {\n    htmlContent = item.json.html || item.json.body || item.json.content;\n  }\n  \n  if (htmlContent && typeof htmlContent === 'string') {\n    const originalSize = htmlContent.length;\n    \n    // Remove script tags, style tags, and other non-content elements\n    htmlContent = htmlContent\n      .replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '')\n      .replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '')\n      .replace(/<nav\\b[^<]*(?:(?!<\\/nav>)<[^<]*)*<\\/nav>/gi, '')\n      .replace(/<header\\b[^<]*(?:(?!<\\/header>)<[^<]*)*<\\/header>/gi, '')\n      .replace(/<footer\\b[^<]*(?:(?!<\\/footer>)<[^<]*)*<\\/footer>/gi, '')\n      .replace(/<!--[\\s\\S]*?-->/g, '') // Remove comments\n      .replace(/<meta\\b[^>]*>/gi, '') // Remove meta tags\n      .replace(/<link\\b[^>]*>/gi, ''); // Remove link tags\n    \n    // Remove excessive whitespace and normalize\n    const cleanText = htmlContent\n      .replace(/<[^>]+>/g, ' ') // Remove HTML tags\n      .replace(/\\s+/g, ' ') // Replace multiple spaces with single space\n      .replace(/\\n+/g, ' ') // Replace newlines with spaces\n      .trim();\n    \n    // Create optimized output\n    outputItems.push({\n      json: {\n        cleanedContent: cleanText,\n        originalSize: originalSize,\n        optimizedSize: cleanText.length,\n        compressionRatio: Math.round((1 - cleanText.length / originalSize) * 100) + '%'\n      }\n    });\n  }\n}\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -176
+      ],
+      "id": "84b8be9e-5d1e-4a25-b927-5562f8379708",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "AI Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Access and extract data from a specific URL": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Transform": {
+      "main": [
+        [
+          {
+            "node": "Access and extract data from a specific URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dde80035-5e38-463c-a377-a7e834331e01",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3c7e8dea677bf7468a333dc745afee5add90d76f063e47c15f1c7e32611493e7"
+  },
+  "id": "VG7F4v0oMZqoLQ5r",
+  "tags": []
+}

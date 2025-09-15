@@ -1,0 +1,272 @@
+{
+  "name": "Enhanced Interview Question Generator with Real-time Job Data",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-interview-question-enhanced",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-160, 0],
+      "id": "webhook-node",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "resume-check",
+              "leftValue": "={{ $json.body.resumeUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [48, 0],
+      "id": "if-node",
+      "name": "Check Resume URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.resumeUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [432, -16],
+      "id": "http-request",
+      "name": "Fetch Resume"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [624, 0],
+      "id": "extract-resume",
+      "name": "Extract Resume Content"
+    },
+    {
+      "parameters": {
+        "resource": "webUnlocker",
+        "operation": "sendRequest",
+        "url": "https://www.linkedin.com/jobs/search/?keywords={{ encodeURIComponent($json.body.jobTitle || 'software engineer') }}&location={{ encodeURIComponent($json.body.location || 'United States') }}",
+        "zone": "web_unlocker_zone",
+        "country": "US",
+        "format": "json"
+      },
+      "type": "@brightdata/n8n-nodes-brightdata",
+      "typeVersion": 1,
+      "position": [800, -200],
+      "id": "scrape-job-market",
+      "name": "Scrape Job Market Data",
+      "credentials": {
+        "brightDataApi": {
+          "id": "4d3fc4f343cf37a65f2f42db314f630dbb8a38739a6307befd441da4233b7283",
+          "name": "Bright Data API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert interview question generator. Based on the user's resume data and current job market trends, generate 10 relevant interview questions. Use the scraped job market data to ensure questions align with current industry expectations and requirements. Format response as JSON with 'questions' array containing objects with 'question' and 'suggested_answer' fields.",
+              "role": "system"
+            },
+            {
+              "content": "Resume Content: {{ $('Extract Resume Content').item.json.text }}\n\nJob Market Data: {{ JSON.stringify($('Scrape Job Market Data').item.json) }}\n\nJob Title: {{ $json.body.jobTitle }}\nJob Description: {{ $json.body.jobDescription }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [1000, 0],
+      "id": "generate-questions",
+      "name": "Generate Enhanced Questions",
+      "credentials": {
+        "openAiApi": {
+          "id": "1rtEU7Kmxl5emVZ3",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Generate 5 interview questions based on job title and description. Include current industry trends and expectations. Format as JSON with 'questions' array.",
+              "role": "system"
+            },
+            {
+              "content": "Job Title: {{ $json.body.jobTitle }}\nJob Description: {{ $json.body.jobDescription }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [256, 256],
+      "id": "fallback-questions",
+      "name": "Generate Basic Questions",
+      "credentials": {
+        "openAiApi": {
+          "id": "1rtEU7Kmxl5emVZ3",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1200, 0],
+      "id": "respond-enhanced",
+      "name": "Respond with Enhanced Questions"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [608, 256],
+      "id": "respond-basic",
+      "name": "Respond with Basic Questions"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Resume URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Resume URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Resume",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Basic Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Resume": {
+      "main": [
+        [
+          {
+            "node": "Extract Resume Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Resume Content": {
+      "main": [
+        [
+          {
+            "node": "Scrape Job Market Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Job Market Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Enhanced Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Enhanced Questions": {
+      "main": [
+        [
+          {
+            "node": "Respond with Enhanced Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Basic Questions": {
+      "main": [
+        [
+          {
+            "node": "Respond with Basic Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
