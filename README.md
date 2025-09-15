@@ -216,7 +216,7 @@ This project is deployed on Vercel. To deploy your own instance:
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
-
+- **kiro** for continuous development and automation support
 - **n8n** for providing the automation platform and AI Agent nodes
 - **Bright Data** for reliable web scraping infrastructure
 - **Akool** for lifelike AI avatar technology
