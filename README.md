@@ -188,7 +188,7 @@ Kiro's spec-driven approach was instrumental in architecting HireWize's complex 
 ✅ **/.kiro Directory**: Present in repository root showcasing specs, hooks, and steering configurations  
 ✅ **Public Repository**: Open source with MIT license  
 ✅ **Live Demo**: Available at [hirewize.vercel.app](https://hirewize.vercel.app/)  
-✅ **Video Demo**: 3-minute demonstration video showcasing Kiro development process *(Coming Soon)*  
+✅ **Video Demo**: 3-minute demonstration video showcasing Kiro development process [YouTube](https://youtu.be/nWJVKGOHJLY)  
 
 ## 🚀 Deployment
 
