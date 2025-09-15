@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -31,11 +31,24 @@ const CreateInterviewDialog = () => {
     });
     const [file, setFile] = useState<File>();
     const [loading, setLoading] = useState<boolean>(false);
+    const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(0);
     const saveInterviewQuestion = useMutation(api.Interview.SaveInterviewQuestions);
     
     const userContext = useContext(UserDetailContext);
-
     const router = useRouter();
+    const toastIdRef = useRef<string | number | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Engaging messages to cycle through during processing
+    const loadingMessages = [
+        "🔍 Analyzing your resume...",
+        "🤖 Understanding job requirements...",
+        "💡 Generating personalized questions...",
+        "🎯 Tailoring interview difficulty...",
+        "📝 Preparing your interview session...",
+        "✨ Almost ready! Final touches...",
+        "🚀 Setting up your interview environment..."
+    ];
 
     const onHandleInputChange = (field: keyof FormDataType, value: string | File | null | undefined) => {
         setFormData(prev => ({
@@ -51,6 +64,54 @@ const CreateInterviewDialog = () => {
             onHandleInputChange('resume', null);
         }
     }, [file]);
+
+    // Effect to handle progressive toast messages during loading
+    useEffect(() => {
+        if (loading) {
+            // Show initial toast
+            toastIdRef.current = toast.loading(loadingMessages[0], {
+                duration: Infinity, // Keep it until we dismiss it
+            });
+            
+            // Start cycling through messages
+            intervalRef.current = setInterval(() => {
+                setCurrentMessageIndex((prevIndex) => {
+                    const nextIndex = (prevIndex + 1) % loadingMessages.length;
+                    
+                    // Update the existing toast with new message
+                    if (toastIdRef.current) {
+                        toast.dismiss(toastIdRef.current);
+                        toastIdRef.current = toast.loading(loadingMessages[nextIndex], {
+                            duration: Infinity,
+                        });
+                    }
+                    
+                    return nextIndex;
+                });
+            }, 2500); // Change message every 2.5 seconds
+        } else {
+            // Clean up when loading stops
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            if (toastIdRef.current) {
+                toast.dismiss(toastIdRef.current);
+                toastIdRef.current = null;
+            }
+            setCurrentMessageIndex(0);
+        }
+
+        // Cleanup on unmount
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+            if (toastIdRef.current) {
+                toast.dismiss(toastIdRef.current);
+            }
+        };
+    }, [loading, loadingMessages]);
 
     const onSubmit = async () => {
         // Check if user is authenticated
@@ -109,6 +170,8 @@ const CreateInterviewDialog = () => {
                     </DialogTitle>
                     <DialogDescription className="text-sm sm:text-base text-muted-foreground">
                         Please provide the following details to set up your interview.
+                        <br/>
+                        <span className='text-xs text-muted-foreground text-red-500'>Typical interview creation is 30 seconds.</span>
                     </DialogDescription>
                 </DialogHeader>
                 
