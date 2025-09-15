@@ -1,0 +1,108 @@
+{
+  "name": "Interview Feedback Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "38a13183-51d2-44c0-9e3b-9aad76569cb2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f70f4a20-f5db-4e57-90f8-5d4235350d62",
+      "name": "Webhook",
+      "webhookId": "38a13183-51d2-44c0-9e3b-9aad76569cb2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "\"Based on the provided interview conversation messages, generate a detailed feedback report that includes:\n\n1. **Feedback**: Provide a comprehensive analysis of the candidate's responses, highlighting strengths and weaknesses.\n2. **Suggestions for Improvement**: Identify areas where the candidate could improve their answers, including any missed opportunities for more in-depth or accurate explanations.\n3. **Rating**: Rate the candidate's performance on a scale from 1 to 10, with 10 being excellent and 1 being poor.\n\nThe response should be structured in the following JSON format:\n\n```json\n{\n  \"feedback\": \"<Detailed feedback on the interview>\",\n  \"suggestion\": \"<Suggestions for improvement>\",\n  \"rating\": <1-10>\n}\n```\n\nEnsure the feedback is specific to the interview and based on the candidate's answers in the provided conversation.\"",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.body.message }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d05565ac-785f-4b3c-81b5-7193dd839540",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "1rtEU7Kmxl5emVZ3",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        560,
+        0
+      ],
+      "id": "20391659-2bc4-47ca-ad40-6436a8fe3ce1",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "79e4ad6d-3860-4898-aa60-019b45e4615f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3c7e8dea677bf7468a333dc745afee5add90d76f063e47c15f1c7e32611493e7"
+  },
+  "id": "yPKCiYv7F4RvjeCj",
+  "tags": []
+}

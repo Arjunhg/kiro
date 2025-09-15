@@ -6,7 +6,7 @@ export async function POST(request: NextRequest){
         const { messages } = await request.json();
 
         // Convert messages array to JSON string to match what n8n expects
-        const result = await axios.post('https://codersnake.app.n8n.cloud/webhook/38a13183-51d2-44c0-9e3b-9aad76569cb2', {
+        const result = await axios.post(process.env.N8N_FEEDBACK_URL || '', {
             message: messages  // Note: "message" not "messages", and stringified
         })
 
